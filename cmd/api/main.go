@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	httptransport "github.com/denniszl/wallet_flexing/internal/http"
 	"github.com/prometheus/common/log"
 )
 
@@ -28,8 +29,13 @@ func main() {
 		httpAddr = flag.String("http.addr", ":"+p, "HTTP listen address")
 	)
 
+	var handler http.Handler
+	{
+		handler = httptransport.MakeHTTPHandler()
+	}
+
 	log.Infof("Listening on port: %s", addr)
-	err := http.ListenAndServe(*httpAddr, nil)
+	err := http.ListenAndServe(*httpAddr, handler)
 	if err != nil {
 		panic("exited")
 	}
