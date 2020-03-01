@@ -16,6 +16,7 @@ build: bin/api
 
 bin/api:
 	@echo "building api..."
+	go mod vendor
 	go build -o bin/api ./cmd/api
 
 .PHONY: lint
@@ -29,3 +30,4 @@ test:
 .PHONY: clean
 clean:
 	rm -rf bin
+	rm -rf vendor

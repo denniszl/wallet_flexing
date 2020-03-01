@@ -3,6 +3,8 @@ package http
 import (
 	"errors"
 	"net/http"
+
+	"github.com/denniszl/wallet_flexing/internal/endpoints"
 )
 
 var (
@@ -13,7 +15,15 @@ var (
 	// It always indicates programmer error.
 	ErrBadContext = errors.New("expected key to exist in Context but not found (programmer error")
 	// ErrNotFound is returned when route not found
-	ErrNotFound = errors.New("not Found")
+	ErrNotFound = errors.New("not found")
+	// ErrInvalidTimestampsFormat uses an invalid timestamp format
+	ErrInvalidTimestampsFormat = errors.New("must use RFC3339 for timestamps")
+	// ErrInvalidTimestamps is when the start date is after the end date.
+	ErrInvalidTimestamps = errors.New("the start datetime must be before the end datetime")
+	// ErrMissingTimestamp means you're missing either a start or end timestamp
+	ErrMissingTimestamp = errors.New("must provide both a start_date_time and an end_date_time")
+	// ErrInvalidBody is when the body is invalid
+	ErrInvalidBody = errors.New("invalid body for request")
 )
 
 // mapHTTPError will map endpoint and transport errors to http errors
@@ -22,6 +32,8 @@ func mapHTTPError(err error) (status int, found bool) {
 	switch err {
 	case ErrNotFound:
 		status = http.StatusNotFound
+	case ErrInvalidTimestamps, ErrInvalidTimestampsFormat, ErrMissingTimestamp, endpoints.ErrTimestampFromFuture, endpoints.ErrInvalidTimestamp, endpoints.ErrInvalidAmount, ErrInvalidBody:
+		status = http.StatusBadRequest
 	default:
 		found = false
 	}
@@ -35,6 +47,6 @@ type ErrorResponse struct {
 
 // Error holds error messages
 type Error struct {
-	Type    string `json:"type"`
+	Type    string `json:"type,omitempty"`
 	Message string `json:"message"`
 }

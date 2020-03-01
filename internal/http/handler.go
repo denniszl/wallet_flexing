@@ -4,16 +4,21 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/denniszl/wallet_flexing/internal/endpoints"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
 )
 
 // MakeHTTPHandler initializes a go-kit http service
-func MakeHTTPHandler() http.Handler {
+func MakeHTTPHandler(serviceEndpoints endpoints.Endpoints) http.Handler {
 	r := mux.NewRouter()
 
 	// maybe one day
 	options := []httptransport.ServerOption{}
+	options = append(
+		options,
+		httptransport.ServerErrorEncoder(makeErrorEncoder()),
+	)
 
 	notFound := func(_ context.Context, _ interface{}) (interface{}, error) {
 		return nil, ErrNotFound
@@ -23,13 +28,6 @@ func MakeHTTPHandler() http.Handler {
 		decodeRequest,
 		encodeResponse,
 		options...,
-	)
-
-	// Favicon not found
-	r.Methods("GET").Path("/favicon.ico").HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusNotFound)
-		},
 	)
 
 	// GET /_healthcheck
@@ -47,15 +45,25 @@ func MakeHTTPHandler() http.Handler {
 		),
 	).Name("healthcheck")
 
-	// GET /_heartbeat
-	r.Methods("GET").Path("/_heartbeat").Handler(
+	// GET /transactions
+	r.Methods("GET").Path("/transactions").Handler(
 		httptransport.NewServer(
-			healthcheck,
-			decodeRequest,
+			serviceEndpoints.GetTransactions,
+			decodeGetTransactions,
 			encodeResponse,
 			options...,
 		),
-	).Name("heartbeat")
+	).Name("transactions")
+
+	// POST /transactions
+	r.Methods("POST").Path("/transactions").Handler(
+		httptransport.NewServer(
+			serviceEndpoints.PostTransaction,
+			decodePostTransaction,
+			encodeResponse,
+			options...,
+		),
+	).Name("transactions")
 
 	return r
 }
