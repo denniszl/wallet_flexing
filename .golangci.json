@@ -1,0 +1,10 @@
+{
+    "linters": {
+      "disable-all": true,
+      "enable": ["golint", "staticcheck", "ineffassign"]
+    },
+    "linters-settings": {
+      "govet": { "check-shadowing": false }
+    }
+}
+  
