@@ -2,6 +2,7 @@ package disk
 
 import (
 	"context"
+	"math"
 	"os"
 	"sync"
 
@@ -35,8 +36,8 @@ func NewRepository() (repository.Repository, error) {
 		return nil, errors.Wrap(err, "failed to initialize repo")
 	}
 	total := 0.0
-	if len(transactions) > 0 {
-		total = transactions[len(transactions)-1].Amount
+	for _, t := range transactions {
+		total = math.Max(total, t.Amount)
 	}
 
 	r.amountHeld = total
